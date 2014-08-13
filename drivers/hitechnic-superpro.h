@@ -5,35 +5,36 @@
  * @{
  */
 /*
- * $Id: HTSPB-driver.h 48 2011-10-10 20:35:38Z gustav $
+ * $Id: hitechnic-superpro.h 133 2013-03-10 15:15:38Z xander $
  */
 
 #ifndef __HTSPB_H__
 #define __HTSPB_H__
-/** \file HTSPB-driver.h
+/** \file hitechnic-superpro.h
  * \brief HiTechnic SuperPro Prototype Board driver
  *
- * HTSPB-driver.h provides an API for the HiTechnic SuperPro Proto Board.
+ * hitechnic-superpro.h provides an API for the HiTechnic SuperPro Proto Board.
  *
  * Changelog:
  * - 0.1: Initial release
  *
  * License: You may use this code as you wish, provided you give credit where its due.
  *
- * THIS CODE WILL ONLY WORK WITH ROBOTC VERSION 2.00 AND HIGHER.
+ * THIS CODE WILL ONLY WORK WITH ROBOTC VERSION 3.59 AND HIGHER. 
+
  * \author Gustav Jansson (gus_at_hitechnic.com)
  * \date 10 October 2011
  * \version 0.1
- * \example HTSPB-exp1.c
- * \example HTSPB-exp2.c
- * \example HTSPB-exp3.c
- * \example HTSPB-exp4.c
- * \example HTSPB-exp5.c
- * \example HTSPB-exp6a.c
- * \example HTSPB-exp6b.c
- * \example HTSPB-exp7.c
- * \example HTSPB-exp8.c
- * \example HTSPB-exp9.c
+ * \example hitechnic-superpro-exp1.c
+ * \example hitechnic-superpro-exp2.c
+ * \example hitechnic-superpro-exp3.c
+ * \example hitechnic-superpro-exp4.c
+ * \example hitechnic-superpro-exp5.c
+ * \example hitechnic-superpro-exp6a.c
+ * \example hitechnic-superpro-exp6b.c
+ * \example hitechnic-superpro-exp7.c
+ * \example hitechnic-superpro-exp8.c
+ * \example hitechnic-superpro-exp9.c
  */
 
 #pragma systemFile
@@ -87,6 +88,7 @@ bool HTSPBsetSamplingTime(tSensors link, byte interval);
  * Read the values of the digital inputs as specified by the mask.
  * @param link the HTSPB port number
  * @param mask the specified digital ports
+ * @return 8 bits representing the state of the specified IOs
  */
 ubyte HTSPBreadIO(tSensors link, ubyte mask) {
   memset(HTSPB_I2CRequest, 0, sizeof(tByteArray));
@@ -95,9 +97,8 @@ ubyte HTSPBreadIO(tSensors link, ubyte mask) {
   HTSPB_I2CRequest[1] = HTSPB_I2C_ADDR;             // I2C Address
   HTSPB_I2CRequest[2] = HTSPB_OFFSET + HTSPB_DIGIN;  // Start digital output read address
 
-  writeI2C(link, HTSPB_I2CRequest, 1);
-
-  readI2C(link, HTSPB_I2CReply, 1);
+  if (!writeI2C(link, HTSPB_I2CRequest, HTSPB_I2CReply, 1))
+    return 0;
 
   return HTSPB_I2CReply[0] & mask;
 }
@@ -118,7 +119,7 @@ bool HTSPBwriteIO(tSensors link, ubyte mask) {
   HTSPB_I2CRequest[3] = mask;                      // The specified digital ports
 
 
-  return writeI2C(link, HTSPB_I2CRequest, 0);
+  return writeI2C(link, HTSPB_I2CRequest);
 }
 
 
@@ -136,7 +137,7 @@ bool HTSPBsetupIO(tSensors link, ubyte mask) {
   HTSPB_I2CRequest[2] = HTSPB_OFFSET + HTSPB_DIGCTRL;  // Start digital input/output control address
   HTSPB_I2CRequest[3] = mask;                        // The specified digital ports
 
-  return writeI2C(link, HTSPB_I2CRequest, 0);
+  return writeI2C(link, HTSPB_I2CRequest);
 }
 
 
@@ -155,10 +156,7 @@ int HTSPBreadADC(tSensors link, byte channel, byte width) {
   HTSPB_I2CRequest[1] = HTSPB_I2C_ADDR;                           // I2C Address
   HTSPB_I2CRequest[2] = HTSPB_OFFSET + HTSPB_A0_U + (channel * 2); // Start digital output read address
                                                                     // with channel offset
-  if (!writeI2C(link, HTSPB_I2CRequest, 2))
-    return -1;
-
-  if (!readI2C(link, HTSPB_I2CReply, 2))
+  if (!writeI2C(link, HTSPB_I2CRequest, HTSPB_I2CReply, 2))
     return -1;
 
   // Convert the bytes into and int
@@ -193,10 +191,7 @@ bool HTSPBreadAllADC(tSensors link, int &adch0, int &adch1, int &adch2, int &adc
   HTSPB_I2CRequest[1] = HTSPB_I2C_ADDR;           // I2C Address
   HTSPB_I2CRequest[2] = HTSPB_OFFSET + HTSPB_A0_U; // Start digital output read address
 
-  if (!writeI2C(link, HTSPB_I2CRequest, 10))
-    return false;
-
-  if(!readI2C(link, HTSPB_I2CReply, 10))
+  if (!writeI2C(link, HTSPB_I2CRequest, HTSPB_I2CReply, 10))
     return false;
 
   // Convert the bytes into and int
@@ -241,7 +236,7 @@ bool HTSPBwriteAnalog(tSensors link, byte dac, byte mode, int freq, int volt) {
   HTSPB_I2CRequest[6] = volt/4;                     // High 8 bits of voltage
   HTSPB_I2CRequest[7] = volt&3;                     // Low 2 bits of voltage
 
-  return writeI2C(link, HTSPB_I2CRequest, 0);
+  return writeI2C(link, HTSPB_I2CRequest);
 }
 
 
@@ -249,7 +244,7 @@ bool HTSPBwriteAnalog(tSensors link, byte dac, byte mode, int freq, int volt) {
 #endif // __HTSPB_H__
 
 /*
- * $Id: HTSPB-driver.h 48 2011-10-10 16:00:00Z gustav $
+ * $Id: hitechnic-superpro.h 133 2013-03-10 15:15:38Z xander $
  */
 /* @} */
 /* @} */
