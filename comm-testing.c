@@ -25,14 +25,13 @@ task comm(){
   	inputdata = 0;
     //for loop that runs once for each packet in a frame
   	for (int i = 0; i < 10; i++){
-  		//wait for the arduino to change the arduino update pin
+  		//wait for the arduino to change the arduino update pinZ
   		nxtDisplayTextLine(3, "cycle %d, waiting for arduino", i);
   		while(arduinoUpdate == HTSPBreadIO(HTSPB, 0b00000100)){
   			wait1Msec(1);
   		}
-  		nxtDisplayTextLine(3, "cycle %d", i);
   		//read input pin / pins
-  		inputdata += HTSPBreadIO(HTSPB, 0x01);
+  		inputdata += (HTSPBreadIO(HTSPB, 0x01);
   		nxtDisplayTextLine(4, "input 1: %d", HTSPBreadIO(HTSPB, 0x01));
   		//use left-hand operator to process data
   		inputdata = inputdata << 1;
